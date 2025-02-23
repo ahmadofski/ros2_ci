@@ -1,0 +1,45 @@
+# Base image: Use a ROS 2 Galactic image with ROS 2 installed
+FROM osrf/ros:galactic-desktop
+
+# Change the default shell to Bash
+SHELL [ "/bin/bash" , "-c" ]
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    ros-galactic-ros2-control \
+    ros-galactic-ros2-controllers \
+    ros-galactic-gazebo-ros2-control \
+    ros-galactic-gazebo-plugins \
+    ros-galactic-xacro \
+    ros-galactic-rmw-cyclonedds-cpp \
+    python3-colcon-common-extensions \
+    ros-galactic-joint-state-publisher \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy tortoisebot packages
+COPY ./tortoisebot_testing /ros2_ws/src/tortoisebot_testing
+COPY ./tortoisebot_gazebo /ros2_ws/src/tortoisebot_gazebo
+COPY ./tortoisebot_description /ros2_ws/src/tortoisebot_description
+COPY ./tortoisebot_waypoints /ros2_ws/src/tortoisebot_waypoints
+
+COPY ./ros2_helper_libs /ros2_ws/src/ros2_helper_libs
+
+
+# Build the ROS2 workspace
+RUN source /opt/ros/galactic/setup.bash \
+ && cd /ros2_ws \
+ && colcon build
+
+# Add source command to bashrc file
+RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
+
+# Set up a workspace directory
+WORKDIR /ros2_ws/
+
+# Set environment variables
+ENV ROS_DOMAIN_ID=0
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+# start a shell on Entry and run launch command
+ENTRYPOINT ["/bin/bash"]
+CMD ["-c", "source /opt/ros/galactic/setup.bash && source /ros2_ws/install/setup.bash && ros2 launch tortoisebot_testing test_sim.launch.py"]
