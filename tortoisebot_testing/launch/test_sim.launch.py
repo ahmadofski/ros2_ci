@@ -16,8 +16,8 @@ def generate_launch_description():
         package='tortoisebot_description').find('tortoisebot_description')
     rviz_launch_dir = os.path.join(
         get_package_share_directory('tortoisebot_description'), 'launch')
-    gazebo_launch_dir = os.path.join(
-        get_package_share_directory('tortoisebot_testing'), 'launch')
+    gazebo_launch_file = os.path.join(
+        get_package_share_directory('tortoisebot_gazebo'), 'launch', 'gazebo.launch.py')
     default_model_path = os.path.join(
         pkg_share, 'models/urdf/tortoisebot.xacro')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -28,8 +28,7 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items())
 
     gazebo_launch_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gazebo_launch_dir, 'gazebo.launch.py')),
+        PythonLaunchDescriptionSource(gazebo_launch_file),
         condition=IfCondition(use_sim_time),
         launch_arguments={'use_sim_time': use_sim_time}.items())
 

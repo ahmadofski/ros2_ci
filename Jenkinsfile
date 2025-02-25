@@ -8,7 +8,8 @@ pipeline {
         }
         stage('Run container') {
             steps {
-                sh 'cd ~/ros2_ws/src/ros2_ci && sudo docker run --name test -d --rm -v ./test-script.sh:/test-script.sh ros2-tortoisebot-waypoints:latest'
+                sh 'cd ~/ros2_ws/src/ros2_ci && sudo docker run --name test-ro2 -d --rm -v ./test-script.sh:/test-script.sh -v /tmp/.X11-unix:/tmp/.X11-unix \
+                -e DISPLAY=$DISPLAY ros2-tortoisebot-waypoints:latest'
                 sleep 5
             }
         }
@@ -17,13 +18,13 @@ pipeline {
                 sh 'sudo docker exec test /test-script.sh'
             }
         }
-        stage('Cleanup') {
-            steps {
-                sh 'sudo docker stop test'
+    }
+    post {
+            always {
+                sh 'sudo docker stop test-ros2'
                 sh 'sudo docker rmi ros2-tortoisebot-waypoints:latest'
                 sh 'sudo docker image prune -f'
                 sh 'sudo docker container prune -f'
             }
         }
-    }
 }
